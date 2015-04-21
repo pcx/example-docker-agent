@@ -1,0 +1,10 @@
+# Development files
+.env
+
+# Backup files
+*~
+.#*
+*#
+
+# Build files
+bin/
