@@ -16,9 +16,9 @@ func GetConfig(machineId string, authToken string) (*Config, error) {
 	// return nil & error on error
 
 	if machineId == "" || authToken == "" {
-		return nil, fmt.Errorf("either is empty machineid=%s authtoken=%s", machineId, authToken)
+		return nil, fmt.Errorf("Must provide both machineId & authToken")
 	} else {
-		log.Infof("config set, machineId %s and authToken %s", machineId, authToken)
+		log.Infof("config set, machineId=%s and authToken=%s", machineId, authToken)
 	}
 
 	return &Config{machineId: machineId, authToken: authToken}, nil
