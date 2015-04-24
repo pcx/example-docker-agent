@@ -44,6 +44,6 @@ func (m *Manager) beat() {
 	ms := m.machine.GetState()
 	err := m.hub.SetMachineState(*ms)
 	if err != nil {
-		log.Errorf("Failed heatbeat: %v", err)
+		log.Errorf("Failed sending heartbeat: %v", err)
 	}
 }
