@@ -44,7 +44,7 @@ func main() {
 			cli.ShowAppHelp(ctx)
 			os.Exit(1)
 		}
-		log.Debug("Starting enforcer daemon")
+		log.Debug("Starting stacktape-agent...")
 		// log.EnableTimestamps()
 		log.EnableDebug()
 
@@ -55,7 +55,7 @@ func main() {
 		signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
 
 		<-sigChan
-		log.Infof("Gracefully shutting down")
+		log.Infof("Gracefully shutting down...")
 		s.Stop()
 	}
 

@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -26,7 +27,7 @@ func MakeConfig(ctx *cli.Context) (*Config, error) {
 	HubURLStr := ctx.String("HubURL")
 
 	if MachineID == "" || AuthToken == "" || HubURLStr == "" {
-		return nil, fmt.Errorf("The flags MachineID, AuthToken & HubURL are required")
+		return nil, errors.New("Invalid command usage. -m and -a are required.")
 	}
 
 	HubURL, err := url.Parse(HubURLStr)
