@@ -6,9 +6,7 @@ type Machine struct {
 }
 
 func NewMachine(machineID string, authToken string) *Machine {
-	return &Machine{
-		MachineID: machineID,
-		AuthToken: authToken}
+	return &Machine{MachineID: machineID, AuthToken: authToken}
 }
 
 func (m *Machine) GetState() *Machine {

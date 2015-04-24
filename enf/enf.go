@@ -7,16 +7,19 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/pcx/st-agent/conf"
 	"github.com/pcx/st-agent/log"
 	"github.com/pcx/st-agent/server"
 )
 
 func main() {
-	machineId := flag.String("machineId", "", "Machine ID provided by web dashboard")
-	authToken := flag.String("authToken", "", "Auth token provided by web dashboard")
+	MachineID := flag.String("MachineID", "", "Machine ID provided by web dashboard")
+	AuthToken := flag.String("AuthToken", "", "Auth token provided by web dashboard")
+	HubURL := flag.String("HubURL", "", "Hub url to connect to, format: scheme://host:port")
+
 	flag.Parse()
 
-	conf, err := server.GetConfig(*machineId, *authToken)
+	config, err := conf.GetConfig(*MachineID, *AuthToken, *HubURL)
 	if err != nil {
 		log.Errorf("Unable to parse config: %v", err)
 		fmt.Println("Usage: enf [OPTIONS]")
@@ -29,7 +32,7 @@ func main() {
 
 	log.Debug("Starting enforcer daemon")
 
-	s := server.NewServer(conf)
+	s := server.NewServer(config)
 	s.Start()
 
 	sigChan := make(chan os.Signal, 1)

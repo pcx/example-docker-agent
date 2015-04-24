@@ -1,22 +1,21 @@
 package hub
 
 import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/pcx/st-agent/log"
 	"github.com/pcx/st-agent/machine"
+	"github.com/pcx/st-agent/pkg"
 )
 
 type Hub struct {
-	url string
+	URL *url.URL
 }
 
-func NewHub() *Hub {
-	return &Hub{url: "http://lvh.me:8000"}
+func NewHub(hubURL *url.URL) *Hub {
+	// hubURL.Scheme = "http"
+	return &Hub{URL: hubURL}
 }
 
 type Heartbeat struct {
@@ -38,29 +37,13 @@ func (h *Hub) SetMachineState(m machine.Machine) error {
 	log.Infof("POST to sent")
 
 	hb := newHeartbeat(&m)
-	hbJSON, err := json.Marshal(hb)
+
+	resp, body, err := pkg.JSONRequest(h.URL.String()+"/heartbeat/", hb)
 	if err != nil {
 		return err
 	}
-	log.Debugf("Heartbeat is: %v", string(hbJSON))
-
-	req, err := http.NewRequest("POST", h.url+"/heartbeat/", bytes.NewBuffer(hbJSON))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
 	defer resp.Body.Close()
-	if err != nil {
-		return err
-	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	log.Infof("Heartbeat req success, response is: %v", string(body))
+	log.Infof("Heartbeat tick success, response is: %v", body)
 	return nil
 }

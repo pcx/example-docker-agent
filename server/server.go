@@ -2,27 +2,24 @@ package server
 
 import (
 	"github.com/pcx/st-agent/agent"
+	"github.com/pcx/st-agent/conf"
 	"github.com/pcx/st-agent/heart"
-	"github.com/pcx/st-agent/machine"
 )
 
 type Server struct {
-	agent *agent.Agent
-	conf  *Config
-	heart *heart.Manager
+	agent  *agent.Agent
+	config *conf.Config
+	heart  *heart.Manager
 
 	stop chan bool
 }
 
-func NewServer(conf *Config) *Server {
+func NewServer(config *conf.Config) *Server {
 	return &Server{
-		conf:  conf,
-		agent: agent.NewAgent(),
-		heart: heart.NewManager(
-			machine.NewMachine(
-				conf.machineId,
-				conf.authToken)),
-		stop: make(chan bool)}
+		config: config,
+		agent:  agent.NewAgent(),
+		heart:  heart.NewManager(config),
+		stop:   make(chan bool)}
 }
 
 func (s *Server) Start() {

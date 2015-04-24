@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/pcx/st-agent/conf"
 	"github.com/pcx/st-agent/hub"
 	"github.com/pcx/st-agent/log"
 	"github.com/pcx/st-agent/machine"
@@ -18,10 +19,10 @@ type Manager struct {
 	machine *machine.Machine
 }
 
-func NewManager(machine *machine.Machine) *Manager {
+func NewManager(config *conf.Config) *Manager {
 	return &Manager{
-		hub:     hub.NewHub(),
-		machine: machine}
+		hub:     hub.NewHub(config.HubURL),
+		machine: machine.NewMachine(config.MachineID, config.AuthToken)}
 }
 
 func (m *Manager) Beat(stop chan bool) error {
