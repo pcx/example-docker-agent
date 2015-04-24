@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
@@ -36,13 +37,15 @@ func (h *Hub) SetMachineState(m machine.Machine) error {
 	log.Infof("POST to sent")
 
 	hb := newHeartbeat(&m)
-
 	resp, body, err := pkg.JSONRequest(h.URL.String()+"/heartbeat/", hb)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 201 {
+		return fmt.Errorf("Unexpected status code: %v, Response is : %v", resp.StatusCode, body)
+	}
 	log.Infof("Heartbeat tick success, response is: %v", body)
 	return nil
 }
