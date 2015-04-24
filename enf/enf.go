@@ -1,11 +1,12 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/codegangsta/cli"
 
 	"github.com/pcx/st-agent/conf"
 	"github.com/pcx/st-agent/log"
@@ -13,32 +14,50 @@ import (
 )
 
 func main() {
-	MachineID := flag.String("MachineID", "", "Machine ID provided by web dashboard")
-	AuthToken := flag.String("AuthToken", "", "Auth token provided by web dashboard")
-	HubURL := flag.String("HubURL", "", "Hub url to connect to, format: scheme://host:port")
-
-	flag.Parse()
-
-	config, err := conf.GetConfig(*MachineID, *AuthToken, *HubURL)
-	if err != nil {
-		log.Errorf("Unable to parse config: %v", err)
-		fmt.Println("Usage: enf [OPTIONS]")
-		fmt.Println("Options:")
-		flag.PrintDefaults()
-		os.Exit(1)
+	app := cli.NewApp()
+	app.Name = "stacktape-agent"
+	app.Usage = "Manage Docker like a ninja!"
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "MachineID, m",
+			Value: "",
+			Usage: "Identification for the controlled machine",
+		},
+		cli.StringFlag{
+			Name:  "AuthToken, a",
+			Value: "",
+			Usage: "Used to authenticate the controlled machine with Stacktape Hub",
+		},
+		cli.StringFlag{
+			Name:  "HubURL, u",
+			Value: "",
+			Usage: "Used to connect to Stacktape Hub, format: scheme://host:port",
+		},
 	}
-	log.EnableTimestamps()
-	log.EnableDebug()
 
-	log.Debug("Starting enforcer daemon")
+	app.Action = func(ctx *cli.Context) {
+		config, err := conf.MakeConfig(ctx)
+		if err != nil {
+			log.Error(err)
+			fmt.Println()
 
-	s := server.NewServer(config)
-	s.Start()
+			cli.ShowAppHelp(ctx)
+			os.Exit(1)
+		}
+		log.Debug("Starting enforcer daemon")
+		// log.EnableTimestamps()
+		log.EnableDebug()
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
+		s := server.NewServer(config)
+		s.Start()
 
-	<-sigChan
-	log.Infof("Gracefully shutting down")
-	s.Stop()
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
+
+		<-sigChan
+		log.Infof("Gracefully shutting down")
+		s.Stop()
+	}
+
+	app.Run(os.Args)
 }

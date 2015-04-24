@@ -1,7 +1,6 @@
 package heart
 
 import (
-	"errors"
 	"time"
 
 	"github.com/pcx/st-agent/conf"
@@ -22,10 +21,10 @@ type Manager struct {
 func NewManager(config *conf.Config) *Manager {
 	return &Manager{
 		hub:     hub.NewHub(config.HubURL),
-		machine: machine.NewMachine(config.MachineID, config.AuthToken)}
+		machine: machine.NewMachine(config)}
 }
 
-func (m *Manager) Beat(stop chan bool) error {
+func (m *Manager) Beat(stop chan bool) {
 	// trigger first heartbeat immediately
 	m.beat()
 
@@ -35,7 +34,7 @@ func (m *Manager) Beat(stop chan bool) error {
 		case <-beatChan:
 			m.beat()
 		case <-stop:
-			return errors.New("Stopping heartbeat due to stop signal")
+			log.Info("Stopping heartbeat due to stop signal")
 		}
 	}
 }

@@ -14,7 +14,6 @@ type Hub struct {
 }
 
 func NewHub(hubURL *url.URL) *Hub {
-	// hubURL.Scheme = "http"
 	return &Hub{URL: hubURL}
 }
 
