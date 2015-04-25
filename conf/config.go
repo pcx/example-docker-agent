@@ -2,20 +2,19 @@ package conf
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 
 	"github.com/codegangsta/cli"
-	"github.com/fsouza/go-dockerclient"
 
 	"github.com/pcx/st-agent/log"
+	"github.com/pcx/st-agent/proxy"
 )
 
 type Config struct {
-	MachineID  string
-	AuthToken  string
-	HubURL     *url.URL
-	DockerConn *docker.Client
+	MachineID string
+	AuthToken string
+	HubURL    *url.URL
+	DMan      *proxy.DockerManager
 }
 
 func MakeConfig(ctx *cli.Context) (*Config, error) {
@@ -43,39 +42,13 @@ func MakeConfig(ctx *cli.Context) (*Config, error) {
 		return nil, errors.New("DockerTLSVerify and DockerCertPath need to be set together")
 	}
 
-	// TODO: Move docker connection creation to separate methid
-	// provide ability to recreate docker conn if failed during run
-	// program should try 10 times for docker client connection
-
-	// to stop code linters from bothering about existence of 'client'
-	client := &docker.Client{}
-
-	if DockerTLSVerify {
-		cert := fmt.Sprintf("%s/cert.pem", DockerCertPath)
-		key := fmt.Sprintf("%s/key.pem", DockerCertPath)
-		ca := fmt.Sprintf("%s/ca.pem", DockerCertPath)
-		client, err = docker.NewTLSClient(DockerHost, cert, key, ca)
-	} else {
-		client, err = docker.NewClient(DockerHost)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("Could not connect to Docker daemon at %s: %v",
-			DockerHost, err)
-	}
-	err = client.Ping()
-	if err != nil {
-		return nil, err
-	} else {
-		log.Infof("Successfully established connection to Docker host at: %s", DockerHost)
-	}
-
+	dMan := proxy.NewDockerManager(DockerHost, DockerTLSVerify, DockerCertPath)
 	conf := &Config{
-		MachineID:  MachineID,
-		AuthToken:  AuthToken,
-		HubURL:     HubURL,
-		DockerConn: client,
+		MachineID: MachineID,
+		AuthToken: AuthToken,
+		HubURL:    HubURL,
+		DMan:      dMan,
 	}
-
 	log.Infof("config set, MachineID=%s, AuthToken=%s, HubURL=%s",
 		MachineID, AuthToken, HubURL.String())
 

@@ -3,7 +3,6 @@ package hub
 import (
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/pcx/st-agent/log"
 	"github.com/pcx/st-agent/machine"
@@ -16,19 +15,6 @@ type Hub struct {
 
 func NewHub(hubURL *url.URL) *Hub {
 	return &Hub{URL: hubURL}
-}
-
-type Heartbeat struct {
-	Machine   string    `json:"machine"`
-	AuthToken string    `json:"auth_token"`
-	Timestamp time.Time `json:"timestamp"`
-}
-
-func newHeartbeat(m *machine.Machine) *Heartbeat {
-	return &Heartbeat{
-		Machine:   m.MachineID,
-		AuthToken: m.AuthToken,
-		Timestamp: time.Now().UTC()}
 }
 
 // Machine argument is passed by value, so that SetMachineState
