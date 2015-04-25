@@ -12,22 +12,21 @@ import (
 )
 
 const (
-	stateUpdateInterval = 5 * time.Second
+	stateUpdateInterval = time.Duration(10) * time.Second
 )
 
 type Machine struct {
 	MachineID string
 	AuthToken string
 
+	mut   sync.RWMutex
 	dMan  *proxy.DockerManager
 	state *MachineState
 }
 
 type MachineState struct {
-	Containers []docker.APIContainers
-	Timestamp  time.Time
-
-	mut sync.RWMutex
+	Containers []docker.APIContainers `json:"containers"`
+	Timestamp  time.Time              `json:"timestamp"`
 }
 
 func NewMachine(config *conf.Config) *Machine {
@@ -52,8 +51,8 @@ func NewMachine(config *conf.Config) *Machine {
 }
 
 func (mach *Machine) GetState() *MachineState {
-	mach.state.mut.RLock()
-	defer mach.state.mut.RUnlock()
+	mach.mut.RLock()
+	defer mach.mut.RUnlock()
 
 	return mach.state
 }
@@ -68,11 +67,17 @@ func (mach *Machine) machineStateUpdate() {
 		Filters: make(map[string][]string),
 	}
 
-	mach.state.mut.Lock()
-	defer mach.state.mut.Unlock()
+	mach.mut.Lock()
+	defer mach.mut.Unlock()
 
-	log.Debug("MachineState update tick triggered")
-	mach.state.Containers = mach.dMan.ListContainers(listContainerOpts)
+	// For timestamp to be as accurate as possible, fetch container list
+	// when mutex is locked, though otherwise it isn't necessary
+	containers := mach.dMan.ListContainers(listContainerOpts)
+
+	mach.state = &MachineState{
+		Containers: containers,
+		Timestamp:  time.Now().UTC(),
+	}
 }
 
 func (mach *Machine) MachineStateRefresh(stop chan bool) {
@@ -83,6 +88,7 @@ func (mach *Machine) MachineStateRefresh(stop chan bool) {
 	for {
 		select {
 		case <-updateTicker:
+			log.Debugf("MachineState update tick triggered, %v", time.Now().UTC())
 			mach.machineStateUpdate()
 		case <-stop:
 			log.Info("Stopping MachineState update due to stop signal")

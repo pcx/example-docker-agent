@@ -5,10 +5,18 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
+
+	// "github.com/pcx/st-agent/log"
 )
 
-func JSONRequest(url string, content interface{}) (resp *http.Response, body string, err error) {
+func JSONRequest(url string, content interface{}, printDebug bool) (resp *http.Response, body string, err error) {
 	contentJSON, err := json.Marshal(content)
+	if printDebug {
+		var out bytes.Buffer
+		json.Indent(&out, contentJSON, "=", "\t")
+		out.WriteTo(os.Stdout)
+	}
 	if err != nil {
 		return nil, "", err
 	}

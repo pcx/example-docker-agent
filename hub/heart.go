@@ -6,6 +6,7 @@ import (
 	"github.com/pcx/st-agent/conf"
 	"github.com/pcx/st-agent/log"
 	"github.com/pcx/st-agent/machine"
+	"github.com/pcx/st-agent/pkg"
 )
 
 const (
@@ -13,49 +14,59 @@ const (
 )
 
 type Heartbeat struct {
-	Machine   string    `json:"machine"`
-	AuthToken string    `json:"auth_token"`
-	Timestamp time.Time `json:"timestamp"`
-}
-
-func newHeartbeat(m *machine.Machine) *Heartbeat {
-	return &Heartbeat{
-		Machine:   m.MachineID,
-		AuthToken: m.AuthToken,
-		Timestamp: time.Now().UTC()}
+	MachineID    string                `json:"machine"`
+	AuthToken    string                `json:"auth_token"`
+	Timestamp    time.Time             `json:"timestamp"`
+	MachineState *machine.MachineState `json:"machine_state"`
 }
 
 type HeartbeatManager struct {
-	hub     *Hub
-	machine *machine.Machine
+	hub  *Hub
+	mach *machine.Machine
 }
 
 func NewHeartbeatManager(config *conf.Config) *HeartbeatManager {
 	return &HeartbeatManager{
-		hub:     NewHub(config.HubURL),
-		machine: machine.NewMachine(config)}
+		hub:  NewHub(config.HubURL),
+		mach: machine.NewMachine(config),
+	}
 }
 
-func (m *HeartbeatManager) Beat(stop chan bool) {
+func (hbMan *HeartbeatManager) newHeartbeat() *Heartbeat {
+	return &Heartbeat{
+		MachineID:    hbMan.mach.MachineID,
+		AuthToken:    hbMan.mach.AuthToken,
+		Timestamp:    time.Now().UTC(),
+		MachineState: hbMan.mach.GetState(),
+	}
+}
+
+func (hbMan *HeartbeatManager) beat() {
+	hb := hbMan.newHeartbeat()
+	beatURL := hbMan.hub.URL.String() + "/heartbeat/"
+	resp, body, err := pkg.JSONRequest(beatURL, hb, true)
+	if err != nil {
+		log.Errorf("Failed sending heartbeat: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 201 {
+		log.Errorf("Unexpected status code: %v, Response is : %v", resp.StatusCode, body)
+	}
+	log.Infof("Heartbeat tick success, response is: %v", body)
+}
+
+func (hbMan *HeartbeatManager) Beat(stop chan bool) {
 	// trigger first heartbeat immediately
-	m.beat()
+	hbMan.beat()
 
 	beatChan := time.Tick(beatInterval)
 	for {
 		select {
 		case <-beatChan:
 			log.Debug("Hearbeat tick triggered")
-			m.beat()
+			hbMan.beat()
 		case <-stop:
 			log.Info("Stopping heartbeat due to stop signal")
 		}
-	}
-}
-
-func (m *HeartbeatManager) beat() {
-	ms := m.machine
-	err := m.hub.SetMachineState(*ms)
-	if err != nil {
-		log.Errorf("Failed sending heartbeat: %v", err)
 	}
 }
