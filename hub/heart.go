@@ -44,15 +44,18 @@ func (hbMan *HeartbeatManager) newHeartbeat() *Heartbeat {
 func (hbMan *HeartbeatManager) beat() {
 	hb := hbMan.newHeartbeat()
 	beatURL := hbMan.hub.URL.String() + "/heartbeat/"
-	resp, body, err := pkg.JSONRequest(beatURL, hb, true)
+	resp, body, err := pkg.JSONRequest(beatURL, hb, false)
 	if err != nil {
 		log.Errorf("Failed sending heartbeat: %v", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 201 {
+	} else if resp.StatusCode != 201 {
 		log.Errorf("Unexpected status code: %v, Response is : %v", resp.StatusCode, body)
+	} else if resp.Body == nil {
+		// just to cover any case where res.Body is still nil
+		log.Fatal("Fatal, heartbeat response should be empty. Dying!")
+	} else {
+		defer resp.Body.Close()
+		log.Infof("Heartbeat tick success, response is: %v", body)
 	}
-	log.Infof("Heartbeat tick success, response is: %v", body)
 }
 
 func (hbMan *HeartbeatManager) Beat(stop chan bool) {
@@ -63,7 +66,6 @@ func (hbMan *HeartbeatManager) Beat(stop chan bool) {
 	for {
 		select {
 		case <-beatChan:
-			log.Debug("Hearbeat tick triggered")
 			hbMan.beat()
 		case <-stop:
 			log.Info("Stopping heartbeat due to stop signal")
