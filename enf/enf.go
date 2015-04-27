@@ -21,12 +21,7 @@ func main() {
 		cli.StringFlag{
 			Name:  "MachineID, m",
 			Value: "",
-			Usage: "*Identification for the controlled machine",
-		},
-		cli.StringFlag{
-			Name:  "AuthToken, a",
-			Value: "",
-			Usage: "Used to authenticate the controlled machine with Stacktape Hub",
+			Usage: "Authentication & identification for the controlled machine",
 		},
 		cli.StringFlag{
 			Name:  "HubURL, u",
@@ -47,8 +42,8 @@ func main() {
 		cli.StringFlag{
 			Name:  "DockerCertPath, p",
 			Value: "",
-			Usage: "Path to dir containing TLS certs to use when connecting" +
-				" to Docker daemon, needs --DockerTLSverify",
+			Usage: "Path to dir with TLS certs for connecting to Docker daemon," +
+				" needs --DockerTLSverify",
 			EnvVar: "DOCKER_CERT_PATH",
 		},
 	}

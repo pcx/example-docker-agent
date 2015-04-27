@@ -16,8 +16,7 @@ const (
 )
 
 type Machine struct {
-	MachineID string
-	AuthToken string
+	MachineID string `json:"id"`
 
 	mut   sync.RWMutex
 	dMan  *proxy.DockerManager
@@ -41,7 +40,6 @@ func NewMachine(config *conf.Config) *Machine {
 	containers := config.DMan.ListContainers(listContainerOpts)
 	return &Machine{
 		MachineID: config.MachineID,
-		AuthToken: config.AuthToken,
 		dMan:      config.DMan,
 		state: &MachineState{
 			Containers: containers,

@@ -14,8 +14,7 @@ const (
 )
 
 type Heartbeat struct {
-	MachineID    string                `json:"machine"`
-	AuthToken    string                `json:"auth_token"`
+	MachineID    string                `json:"machine_id"`
 	Timestamp    time.Time             `json:"timestamp"`
 	MachineState *machine.MachineState `json:"machine_state"`
 }
@@ -35,7 +34,6 @@ func NewHeartbeatManager(config *conf.Config) *HeartbeatManager {
 func (hbMan *HeartbeatManager) newHeartbeat() *Heartbeat {
 	return &Heartbeat{
 		MachineID:    hbMan.mach.MachineID,
-		AuthToken:    hbMan.mach.AuthToken,
 		Timestamp:    time.Now().UTC(),
 		MachineState: hbMan.mach.GetState(),
 	}

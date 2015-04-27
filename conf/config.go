@@ -22,14 +22,13 @@ func MakeConfig(ctx *cli.Context) (*Config, error) {
 	// return nil & error on error
 
 	MachineID := ctx.String("MachineID")
-	AuthToken := ctx.String("AuthToken")
 	HubURLStr := ctx.String("HubURL")
 	DockerHost := ctx.String("DockerHost")
 	DockerTLSVerify := ctx.Bool("DockerTLSVerify")
 	DockerCertPath := ctx.String("DockerCertPath")
 
-	if MachineID == "" || AuthToken == "" || HubURLStr == "" {
-		return nil, errors.New("Invalid command usage. -m and -a are required.")
+	if MachineID == "" || HubURLStr == "" {
+		return nil, errors.New("Invalid command usage. -m and -h are required.")
 	}
 
 	HubURL, err := url.Parse(HubURLStr)
@@ -45,12 +44,10 @@ func MakeConfig(ctx *cli.Context) (*Config, error) {
 	dMan := proxy.NewDockerManager(DockerHost, DockerTLSVerify, DockerCertPath)
 	conf := &Config{
 		MachineID: MachineID,
-		AuthToken: AuthToken,
 		HubURL:    HubURL,
 		DMan:      dMan,
 	}
-	log.Infof("config set, MachineID=%s, AuthToken=%s, HubURL=%s",
-		MachineID, AuthToken, HubURL.String())
+	log.Infof("config set, MachineID=%s, HubURL=%s", MachineID, HubURL.String())
 
 	return conf, nil
 }
