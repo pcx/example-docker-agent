@@ -15,7 +15,7 @@ import (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "stacktape-agent"
+	app.Name = "example-docker-agent"
 	app.Usage = "Manage Docker like a ninja!"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -26,7 +26,7 @@ func main() {
 		cli.StringFlag{
 			Name:  "HubURL, u",
 			Value: "",
-			Usage: "Used to connect to Stacktape Hub, format: scheme://host:port",
+			Usage: "Used to connect to a Central Hub, format: scheme://host:port",
 		},
 		cli.StringFlag{
 			Name:   "DockerHost, d",
@@ -57,7 +57,7 @@ func main() {
 			cli.ShowAppHelp(ctx)
 			os.Exit(1)
 		}
-		log.Debug("Starting stacktape-agent...")
+		log.Debug("Starting example-docker-agent...")
 		// log.EnableTimestamps()
 		log.EnableDebug()
 
